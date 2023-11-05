@@ -21,6 +21,8 @@ defmodule FlagIcons.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:ex_doc, "~> 0.30", only: :dev, runtime: false},
+      {:phoenix_live_view, ">= 0.18.0"},
       {:req, "~> 0.4"}
     ]
   end
