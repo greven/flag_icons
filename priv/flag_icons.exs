@@ -53,7 +53,10 @@ To call a flag icon dynamically, use the `FlagIcons.flag/1` function and the cou
 
   use Phoenix.Component
 
-  @doc false
+  @doc """
+  Dynamically renders a flag icon by passing the country code as an attribute.
+  The code argument can be an ISO 3166-1 alpha-2, alpha-3 or other non-country code as a string or an atom
+  """
   attr :code, :any, required: true, doc: "the flag code either an ISO 3166-1 alpha-2 or other non-country code as a string or an atom"
   attr :regular, :boolean, default: true, doc: "use the regular flag format (4x3)"
   attr :squared, :boolean, default: false, doc: "use the squared flag format (1x1)"
@@ -63,11 +66,18 @@ To call a flag icon dynamically, use the `FlagIcons.flag/1` function and the cou
   attr :circle, :boolean, default: false, doc: "rounds the corners of the flag to make it a circle"
   attr :overlay, :atom, values: [false, :linear, :diagonal, :radial], default: false, doc: "adds a overlay effect. Values can be
   `false`, `linear`, `diagonal` or `radial`"
-  attr :class, :any, default: "", doc: "extra CSS classes"
+  attr :class, :any, default: nil, doc: "extra CSS classes"
   attr :rest, :global, doc: "the arbitrary HTML attributes for the svg container"
 
-  def flag(assigns) do
-    apply(FlagIcons, String.to_existing_atom("#{assigns.code}_flag"), [assigns])
+  def flag(%{code: code} = assigns) when is_binary(code) do
+    code = (String.downcase(code) |> String.replace("-", "_")) <> "_flag"
+    apply(FlagIcons, String.to_atom(code), [assigns])
+  end
+
+  def flag(%{code: code} = assigns) when is_atom(code) do
+    assigns
+    |> assign(:code, Atom.to_string(code))
+    |> flag()
   end
 
   defp svg(assigns) do
@@ -77,16 +87,37 @@ To call a flag icon dynamically, use the `FlagIcons.flag/1` function and the cou
     end
   end
 
-  attr :class, :any, default: ""
-  attr :rest, :global, default: %{"aria-hidden": "true"}
-  slot :inner_block, required: true
+  # attr :regular, :boolean, default: true
+  # attr :squared, :boolean, default: false
+  # attr :border, :boolean, default: false
+  # attr :rounded, :boolean, default: false
+  # attr :shadow, :boolean, default: false
+  # attr :circle, :boolean, default: false
+  # attr :overlay, :atom, values: [false, :linear, :diagonal, :radial], default: false
+  # attr :class, :any, default: nil
+  # attr :rest, :global, default: %{"aria-hidden": "true"}
+
+  # slot :inner_block, required: true
 
   defp svg_flag(assigns) do
     ~H"""
-    <div class={@class} {@rest}>
+    <div class={["flic"], flag_styles(assigns), @class} {@rest}>
       <%%= render_slot(@inner_block) %>
     </div>
     """
+  end
+
+  defp flag_styles(assigns) do
+    styles = []
+
+    styles = if assigns[:squared], do: styles ++ ["flic-squared"], else: styles
+    styles = if assigns[:border], do: styles ++ ["flic-border"], else: styles
+    styles = if assigns[:rounded], do: styles ++ ["flic-rounded"], else: styles
+    styles = if assigns[:shadow], do: styles ++ ["flic-shadow"], else: styles
+    styles = if assigns[:circle], do: styles ++ ["flic-circle"], else: styles
+    styles = if assigns[:overlay], do: styles ++ ["flic-overlay-#{assigns[:overlay]}"], else: styles
+
+    styles
   end
 
   <%= for flag <- @flags, {func, %{code: code, svgs: [regular, squared]}} = flag do %>
@@ -102,8 +133,8 @@ To call a flag icon dynamically, use the `FlagIcons.flag/1` function and the cou
   attr :circle, :boolean, default: false, doc: "rounds the corners of the flag to make it a circle"
   attr :overlay, :atom, values: [false, :linear, :diagonal, :radial], default: false, doc: "adds a overlay effect. Values can be
   `false`, `linear`, `diagonal` or `radial`"
-  attr :class, :any, default: "", doc: "extra CSS classes"
-  attr :rest, :global, doc: "the arbitrary HTML attributes for the svg container"
+  attr :class, :any, default: nil, doc: "extra CSS classes"
+  attr :rest, :global, default: %{"aria-hidden": "true"}, doc: "the arbitrary HTML attributes for the svg container"
 
   def <%= func %>(assigns) do
     svg(assign(assigns, svgs: %{regular: ~S|<%= regular %>|, squared: ~S|<%= squared %>|}))
