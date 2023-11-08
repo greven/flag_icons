@@ -87,17 +87,9 @@ To call a flag icon dynamically, use the `FlagIcons.flag/1` function and the cou
     end
   end
 
-  # attr :regular, :boolean, default: true
-  # attr :squared, :boolean, default: false
-  # attr :border, :boolean, default: false
-  # attr :rounded, :boolean, default: false
-  # attr :shadow, :boolean, default: false
-  # attr :circle, :boolean, default: false
-  # attr :overlay, :atom, values: [false, :linear, :diagonal, :radial], default: false
-  # attr :class, :any, default: nil
-  # attr :rest, :global, default: %{"aria-hidden": "true"}
-
-  # slot :inner_block, required: true
+  attr :class, :any, default: nil
+  attr :rest, :global, default: %{"aria-hidden": "true"}
+  slot :inner_block, required: true
 
   defp svg_flag(assigns) do
     ~H"""
@@ -134,7 +126,7 @@ To call a flag icon dynamically, use the `FlagIcons.flag/1` function and the cou
   attr :overlay, :atom, values: [false, :linear, :diagonal, :radial], default: false, doc: "adds a overlay effect. Values can be
   `false`, `linear`, `diagonal` or `radial`"
   attr :class, :any, default: nil, doc: "extra CSS classes"
-  attr :rest, :global, default: %{"aria-hidden": "true"}, doc: "the arbitrary HTML attributes for the svg container"
+  attr :rest, :global, doc: "the arbitrary HTML attributes for the svg container"
 
   def <%= func %>(assigns) do
     svg(assign(assigns, svgs: %{regular: ~S|<%= regular %>|, squared: ~S|<%= squared %>|}))
