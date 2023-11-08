@@ -101,7 +101,7 @@ To call a flag icon dynamically, use the `FlagIcons.flag/1` function and the cou
 
   defp svg_flag(assigns) do
     ~H"""
-    <div class={["flic"], flag_styles(assigns), @class} {@rest}>
+    <div class={["flic", flag_styles(assigns), @class]} {@rest}>
       <%%= render_slot(@inner_block) %>
     </div>
     """
