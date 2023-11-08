@@ -65,33 +65,33 @@ To call a flag icon dynamically, use the `FlagIcons.flag/1` function and the cou
   `false`, `linear`, `diagonal` or `radial`"
   attr :class, :any, default: "", doc: "extra CSS classes"
   attr :rest, :global, doc: "the arbitrary HTML attributes for the svg container"
+
   def flag(assigns) do
-    apply(FlagIcons, assigns.code, [assigns])
+    apply(FlagIcons, String.to_existing_atom("#{assigns.code}_flag"), [assigns])
   end
 
-  attr :rest, :global, default: %{"aria-hidden": "true"}
   defp svg(assigns) do
     case assigns do
-      %{regular: true, squared: false} ->
-        ~H"""
-        <div class={@class} {@rest}>
-          <%%= {:safe, @svgs[:regular]} %>
-        </div>
-        """
-
-      %{regular: false, squared: true} ->
-        ~H"""
-        <div class={@class} {@rest}>
-          <%%= {:safe, @svgs[:squared]} %>
-        </div>
-        """
-      %{} -> raise ArgumentError, "expected either regular or squared, but got both."
+      %{squared: false} -> ~H"<.svg_flag {@rest}><%%= {:safe, @svgs[:regular]} %></.svg_flag>"
+      %{squared: true} -> ~H"<.svg_flag {@rest}><%%= {:safe, @svgs[:squared]} %></.svg_flag>"
     end
   end
 
-  <%= for flag <- @flags, {func, [regular, squared]} = flag do %>
+  attr :class, :any, default: ""
+  attr :rest, :global, default: %{"aria-hidden": "true"}
+  slot :inner_block, required: true
+
+  defp svg_flag(assigns) do
+    ~H"""
+    <div class={@class} {@rest}>
+      <%%= render_slot(@inner_block) %>
+    </div>
+    """
+  end
+
+  <%= for flag <- @flags, {func, %{code: code, svgs: [regular, squared]}} = flag do %>
   @doc """
-  Renders the `<%= func %>` flag icon.
+  Renders the `<%= FlagIcons.Helpers.get_country_name_by_code!(code) %>` flag icon.
   """
 
   attr :regular, :boolean, default: true, doc: "use the regular flag format (4x3)"

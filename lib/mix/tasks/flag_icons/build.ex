@@ -15,27 +15,22 @@ defmodule Mix.Tasks.FlagIcons.Build do
     regular = Path.wildcard(Path.join(svgs_path, "regular/**/*.svg"))
     squared = Path.wildcard(Path.join(svgs_path, "squared/**/*.svg"))
 
-    flags = Enum.group_by(regular ++ squared, &function_name(&1), &File.read!(&1))
+    flags =
+      (regular ++ squared)
+      |> Enum.group_by(&flag_code(&1), &File.read!(&1))
+      |> Enum.map(fn {code, svgs} -> {function_name(code), %{code: code, svgs: svgs}} end)
 
-    Mix.Generator.copy_template(@source_file, @target_file, %{vsn: vsn, flags: flags}, force: true)
-
-    # Mix.Task.run("format")
+    Mix.Generator.copy_template(@source_file, @target_file, [vsn: vsn, flags: flags], force: true)
+    Mix.Task.run("format")
   end
 
   # We need to add a suffix to the function name to avoid conflicts with kernel functions
-  defp function_name(file) do
-    code = file |> file_name() |> flag_code()
-    "#{code}_flag"
-  end
+  defp function_name(code), do: "#{code}_flag"
 
-  defp file_name(file) do
+  defp flag_code(file) do
     file
     |> Path.basename()
     |> Path.rootname()
-  end
-
-  defp flag_code(code) do
-    code
     |> String.split("-")
     |> Enum.join("_")
   end
